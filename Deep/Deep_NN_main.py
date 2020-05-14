@@ -1,33 +1,40 @@
-import sys
-sys.path.insert(1, '..')
+from sys import path
+path.insert(1, '..')
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_digits
+
 from General_NN_Functions import relu, tanh, sigmoid, evaluate_model, graph_costs
-from Deep_NN_Functions import fit_deep_nn_model, predict
+from Deep_NN_Optimizers import *
+from Deep_NN_Model import DeepNNModel
 
 """
 Run an example of a deep neural network, tuned to one's liking.
-Optmizers can be used and all micro params can be manually changed.
+Optmizers can be used and all micro weights can be manually changed.
 """
 
 # The basic parameters and micro-parameters for a deep NN:
 
-LEARNING_RATE = 0.1
-NUM_ITERATIONS = 10000
-HIDDEN_LAYERS = 2
-HIDDEN_LAYER_SIZES = None  # If None, will be set to output of default_layer_sizes
+LEARNING_RATE = 0.3
+NUM_ITERATIONS = 1000
+LAYER_SIZES = (64, 37, 37, 10)
+# (Input layer and last layer must match X, Y dimentions)
 
-# Num of iterations between which cost is calculated:
-COST_CALC_INTERVAL = 1
+# Num of iterations between which cost is calculated,
+# (Also the print % Complete interval):
+COST_CALC_INTERVAL = 50
 
 # The functions for every layer:
-FUNCS = {f"L{i}_func": relu for i in range(1, HIDDEN_LAYERS + 1)}
-FUNCS[f"L{HIDDEN_LAYERS+1}_func"] = sigmoid
+FUNCS = {f"L{i}_func": relu for i in range(1, len(LAYER_SIZES) - 1)}
+FUNCS[f"L{len(LAYER_SIZES)-1}_func"] = sigmoid
 
-RANDOM_SEED = 7
-#
+RANDOM_SEED = 1
+# END MICRO-parameters
+
+# Optimizer functions:
+DESCENT_METHOD = stochastic_gradient_descent(
+    regularization_method=dropout(keep_prob=0.8))
 
 
 def main():
@@ -52,22 +59,31 @@ def main():
     # Transpose X & Y as required by the model
     X_train, X_test = X_train.T, X_test.T
     Y_train, Y_test = Y_train.T, Y_test.T
-    params, costs = fit_deep_nn_model(
-        X_train, Y_train,
-        hidden_layers=HIDDEN_LAYERS,
+    deepNNModel = DeepNNModel(
+        layer_sizes=LAYER_SIZES,
         funcs=FUNCS,
+        descent_method=DESCENT_METHOD,
+        regularization_method=REGULARIZATION_METHOD,
+        random_seed=RANDOM_SEED)
+    costs = deepNNModel.fit(
+        X_train, Y_train,
         learning_rate=LEARNING_RATE,
         num_iterations=NUM_ITERATIONS,
-        cost_calc_interval=COST_CALC_INTERVAL,
-        random_seed=RANDOM_SEED)
+        cost_calc_interval=COST_CALC_INTERVAL)
     graph_costs(
         costs,
         x_label=f"{COST_CALC_INTERVAL}s of iterations",
         y_label="Mean loss (Cost)")
-    predictions = predict(params, FUNCS, X_test)
-    accuracy = evaluate_model(predictions, Y_test)
 
-    print(f"The model acheived {accuracy*100:.2f}% accuracy on the test set.")
+    train_predictions = deepNNModel.predict(X_train)
+    test_predictions = deepNNModel.predict(X_test)
+
+    train_accuracy = evaluate_model(train_predictions, Y_train)
+    test_accuracy = evaluate_model(test_predictions, Y_test)
+
+    print(f"The model acheived {train_accuracy*100:.2f}% accuracy on the train set.")
+    print(f"The model acheived {test_accuracy*100:.2f}% accuracy on the test set.")
+
 
 if __name__ == "__main__":
     main()
