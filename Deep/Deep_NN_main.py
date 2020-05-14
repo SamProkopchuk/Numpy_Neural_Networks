@@ -17,7 +17,7 @@ Optmizers can be used and all micro weights can be manually changed.
 # The basic parameters and micro-parameters for a deep NN:
 
 LEARNING_RATE = 0.3
-NUM_ITERATIONS = 1000
+NUM_ITERATIONS = 2000
 LAYER_SIZES = (64, 37, 37, 10)
 # (Input layer and last layer must match X, Y dimentions)
 
@@ -29,7 +29,7 @@ COST_CALC_INTERVAL = 50
 FUNCS = {f"L{i}_func": relu for i in range(1, len(LAYER_SIZES) - 1)}
 FUNCS[f"L{len(LAYER_SIZES)-1}_func"] = sigmoid
 
-RANDOM_SEED = 1
+RANDOM_SEED = 10
 # END MICRO-parameters
 
 # Optimizer functions:
@@ -63,7 +63,6 @@ def main():
         layer_sizes=LAYER_SIZES,
         funcs=FUNCS,
         descent_method=DESCENT_METHOD,
-        regularization_method=REGULARIZATION_METHOD,
         random_seed=RANDOM_SEED)
     costs = deepNNModel.fit(
         X_train, Y_train,

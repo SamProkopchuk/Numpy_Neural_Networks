@@ -9,7 +9,10 @@ class RegularizationMethod:
     Parent class of regularization method classes
     """
 
-    pass
+    def forward_propagate(self):
+        pass
+    def forward_propagate(self):
+        pass
 
 
 class l2_regularization(RegularizationMethod):
