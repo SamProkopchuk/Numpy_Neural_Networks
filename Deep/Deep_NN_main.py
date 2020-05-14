@@ -8,8 +8,11 @@ from General_NN_Functions import relu, tanh, sigmoid, evaluate_model, graph_cost
 from Deep_NN_Functions import fit_deep_nn_model, predict
 
 """
-The basic parameters and micro-parameters for a deep NN:
+Run an example of a deep neural network, tuned to one's liking.
+Optmizers can be used and all micro params can be manually changed.
 """
+
+# The basic parameters and micro-parameters for a deep NN:
 
 LEARNING_RATE = 0.1
 NUM_ITERATIONS = 10000

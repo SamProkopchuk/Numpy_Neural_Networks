@@ -9,6 +9,10 @@ from SHL_NN_Functions import fit_shl_nn_model, predict
 """
 Run an example of a single-hidden-layer neural network,
 using necessary functions from SHL_NN_Functions.py
+
+Please note: This implementation was made as simple as possible:
+ - No real optimizers are used.
+ - The hidden layer size is always by default: (x_dim + y_dim) // 2
 """
 
 # Parameters & Micro-parameters:

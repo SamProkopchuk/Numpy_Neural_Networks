@@ -6,7 +6,8 @@ from Deep_NN_Optimizers import *
 
 """
 A numpy implementation of all necessary functions for
-a neural network with an arbitrary number of arbitrarily sized hidden layers. 
+a neural network with an arbitrary number of arbitrarily sized hidden layers.
+With Deep_NN_Optimizers, will have the ability to use optimizers such as adam and dropout.
 """
 
 
