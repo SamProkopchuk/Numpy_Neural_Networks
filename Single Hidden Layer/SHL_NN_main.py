@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_digits
 from General_NN_Functions import relu, tanh, sigmoid, evaluate_model, graph_costs
 from SHL_NN_Functions import fit_shl_nn_model, predict
+
 """
 Run an example of a single-hidden-layer neural network,
 using necessary functions from SHL_NN_Functions.py

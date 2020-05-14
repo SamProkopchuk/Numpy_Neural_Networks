@@ -1,7 +1,8 @@
 import sys
-sys.path.insert(1, '..')
+sys.path.insert(1, "..")
 import numpy as np
-from General_NN_Functions import sigmoid, tanh, relu, derivative, get_cost, evaluate_model
+from General_NN_Functions import sigmoid, tanh, relu, derivative, get_cost
+from Deep_NN_Optimizers import *
 
 """
 A numpy implementation of all necessary functions for
@@ -14,12 +15,14 @@ def default_layer_sizes(X, Y, hidden_layers):
 
     return [X.shape[0]] + [hidden_layer_size] * hidden_layers + [Y.shape[0]]
 
+
 def initialize_layer_sizes(
         X, Y, hidden_layers, hidden_layer_sizes):
     if hidden_layer_sizes is None:
         return default_layer_sizes(X, Y, hidden_layers)
     else:
         return [X.shape[0]] + list(hidden_layer_sizes) + [Y.shape[0]]
+
 
 def initialize_params(layer_sizes, random_seed=None, multiplier=0.01):
     if random_seed is not None:
