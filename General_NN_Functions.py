@@ -57,4 +57,7 @@ def evaluate_model(predictions, Y):
     Count when both predictions and Y are 1
     divided by the number of data vectors in Y.
     """
+    # Ensure every column has exactly one 1:
+    assert(np.count_nonzero(np.where(np.count_nonzero(
+        predictions, axis=0) == 1, 1, 0)) == Y.shape[1])
     return np.count_nonzero(np.logical_and(predictions, Y)) / Y.shape[1]

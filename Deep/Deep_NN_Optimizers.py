@@ -11,20 +11,51 @@ class RegularizationMethod:
 
     def forward_propagate(self):
         pass
+
     def forward_propagate(self):
         pass
 
 
-class l2_regularization(RegularizationMethod):
+class l2(RegularizationMethod):
     """
     l2 regularization
+
+    __init__ params:
+        lambd -> the l2 regularization parameter.
+            Multiplies with sum of the squares of each weight.
+            Can be set to 0 for no regularization.
     """
 
     def __init__(self, lambd):
         self.lambd = lambd
 
     def forward_propagate(self, X, weights, funcs):
-        pass
+        cache = {"A0": X}
+        for l in range(1, 1 + len(weights) // 2):
+            # Calculate Z{l} using A{l-1} (& W{l})
+            cache[f"Z{l}"] = np.dot(weights[f"W{l}"], cache[f"A{l-1}"]) + weights[f"b{l}"]
+            # Calculate A{l} using the activation function of layer l on Z{l}
+            cache[f"A{l}"] = funcs[f"L{l}_func"](cache[f"Z{l}"])
+        return cache
+
+    def backward_propagate(self, weights, cache, funcs, X, Y):
+        m = X.shape[1]
+        L = len(weights) // 2
+        grads = {}
+        # Do first back prob separately, since calculation for dZL is
+        # different:
+        dZl = cache[f"A{L}"] - Y
+        grads[f"dW{L}"] = np.dot(dZl, cache[f"A{L-1}"].T) / m
+        grads[f"db{L}"] = np.sum(dZl, axis=1, keepdims=True) / m
+        for l in range(L - 1, 0, -1):
+            # Define lth function for cleaner code:
+            funcl = funcs[f"L{l}_func"]
+            # perform a backprop step:
+            dZl = np.dot(weights[f"W{l+1}"].T, dZl) * derivative(
+                f=funcl, fx=funcl(cache[f"Z{l}"]))
+            grads[f"dW{l}"] = (np.dot(dZl, cache[f"A{l-1}"].T) + self.lambd * weights[f"W{l}"]) / m
+            grads[f"db{l}"] = np.sum(dZl, axis=1, keepdims=True) / m
+        return grads
 
 
 class dropout(RegularizationMethod):
@@ -114,20 +145,20 @@ class mini_batch_gradient_descent(DescentMethod):
         self.regularization_method = regularization_method
 
     def get_res(self, X):
-        return max(0, X.shape[1] - (self.train_index + self.batch_size))
+        return max(0, (self.train_index + self.batch_size) - X.shape[1])
 
     def update_train_index(self, X):
         res = self.get_res(X)
-        self.train_index = res if res == 0 else self.train_index + self.batch_size
+        self.train_index = res if res != 0 else self.train_index + self.batch_size
 
-    def get_batch(self, X):
-        X1 = X[:, self.train_index:self.train_index + self.batch_size]
-        res = self.get_res(X)
+    def get_batch(self, A):
+        A1 = A[:, self.train_index:self.train_index + self.batch_size]
+        res = self.get_res(A)
         if res:
-            X2 = X[:, 0:res:]
-            return np.c_[X1, X2]
+            A2 = A[:, 0:res:]
+            return np.c_[A1, A2]
         else:
-            return X1
+            return A1
 
     def forward_propagate(self, X, weights, funcs):
         Xbatch = self.get_batch(X)
@@ -136,6 +167,7 @@ class mini_batch_gradient_descent(DescentMethod):
     def backward_propagate(self, weights, cache, funcs, X, Y):
         Xbatch = self.get_batch(X)
         Ybatch = self.get_batch(Y)
+        self.update_train_index(X)
         return self.regularization_method.backward_propagate(weights, cache, funcs, Xbatch, Ybatch)
 
 

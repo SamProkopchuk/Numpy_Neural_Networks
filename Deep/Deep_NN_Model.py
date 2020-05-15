@@ -14,7 +14,7 @@ With Deep_NN_Optimizers, has the ability of using optimizers such as sgd and dro
 class DeepNNModel():
 
     def __init__(self, layer_sizes, funcs,
-                 descent_method=None,         # Must be an instance
+                 descent_method,         # Must be an instance
                  random_seed=None):
         if random_seed is not None:
             np.random.seed(random_seed)

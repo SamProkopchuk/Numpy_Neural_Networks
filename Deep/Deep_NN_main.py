@@ -23,7 +23,7 @@ LAYER_SIZES = (64, 37, 37, 10)
 
 # Num of iterations between which cost is calculated,
 # (Also the print % Complete interval):
-COST_CALC_INTERVAL = 50
+COST_CALC_INTERVAL = NUM_ITERATIONS // 100
 
 # The functions for every layer:
 FUNCS = {f"L{i}_func": relu for i in range(1, len(LAYER_SIZES) - 1)}
@@ -33,8 +33,8 @@ RANDOM_SEED = 10
 # END MICRO-parameters
 
 # Optimizer functions:
-DESCENT_METHOD = stochastic_gradient_descent(
-    regularization_method=dropout(keep_prob=0.8))
+DESCENT_METHOD = mini_batch_gradient_descent(batch_size=100,
+    regularization_method=l2(lambd=0.7))
 
 
 def main():
@@ -59,18 +59,21 @@ def main():
     # Transpose X & Y as required by the model
     X_train, X_test = X_train.T, X_test.T
     Y_train, Y_test = Y_train.T, Y_test.T
+
     deepNNModel = DeepNNModel(
         layer_sizes=LAYER_SIZES,
         funcs=FUNCS,
         descent_method=DESCENT_METHOD,
         random_seed=RANDOM_SEED)
-    costs = deepNNModel.fit(
+
+    train_costs = deepNNModel.fit(
         X_train, Y_train,
         learning_rate=LEARNING_RATE,
         num_iterations=NUM_ITERATIONS,
         cost_calc_interval=COST_CALC_INTERVAL)
+
     graph_costs(
-        costs,
+        train_costs,
         x_label=f"{COST_CALC_INTERVAL}s of iterations",
         y_label="Mean loss (Cost)")
 
