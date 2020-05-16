@@ -1,7 +1,4 @@
-import sys
-sys.path.insert(1, "..")
 import numpy as np
-from General_NN_Functions import sigmoid, tanh, relu, derivative
 
 
 class DescentMethod:
@@ -14,7 +11,7 @@ class DescentMethod:
         pass
 
 
-class momentum(DescentMethod):
+class Momentum(DescentMethod):
     """
     Momentum
     """
@@ -29,7 +26,7 @@ class momentum(DescentMethod):
         for grad in grads:
             self.velocities[grad] = 0
 
-    def optimized_grads(self, grads, iteration):
+    def optimized_grads(self, grads):
         if not self._velocities_initialized:
             self.initialize_velocities(grads)
             self._velocities_initialized = True
@@ -41,7 +38,7 @@ class momentum(DescentMethod):
         return self.velocities
 
 
-class RMSprop(DescentMethod):
+class RMSProp(DescentMethod):
     """
     Root Mean Square Propagation
     """
@@ -56,7 +53,7 @@ class RMSprop(DescentMethod):
         for grad in grads:
             self.mean_sqr_grads[grad] = 0
 
-    def optimized_grads(self, grads, iteration):
+    def optimized_grads(self, grads):
         if not self._velocities_initialized:
             self.initialize_mean_sqr_grads(grads)
             self._velocities_initialized = True
@@ -71,27 +68,29 @@ class RMSprop(DescentMethod):
         return grads
 
 
-class adam(DescentMethod):
+class Adam(DescentMethod):
     """
     Adaptive Moment Estimation
     """
 
     def __init__(self, momentum_beta=0.9, rms_beta=0.9):
-        self._momentum = momentum(momentum_beta)
-        self._RMSprop = RMSprop(rms_beta)
+        self._Momentum = Momentum(momentum_beta)
+        self._RMSprop = RMSProp(rms_beta)
+        self._iteration = 0
 
-    def bias_correct(self, velocities, mean_sqr_grads, iteration):
+    def bias_correct(self, velocities, mean_sqr_grads):
         for grad in velocities:
-            velocities[grad] /= (1 - self._momentum.beta ** iteration)
-            mean_sqr_grads[grad] /= (1 - self._RMSprop.beta ** iteration)
+            velocities[grad] /= (1 - self._Momentum.beta ** self._iteration)
+            mean_sqr_grads[grad] /= (1 - self._RMSprop.beta ** self._iteration)
 
-    def optimized_grads(self, grads, iteration):
-        self._momentum.optimized_grads(grads, iteration)
-        self._RMSprop.optimized_grads(grads, iteration)
+    def optimized_grads(self, grads):
+        self._iteration += 1
+        self._Momentum.optimized_grads(grads)
+        self._RMSprop.optimized_grads(grads)
 
-        velocities = self._momentum.velocities
+        velocities = self._Momentum.velocities
         mean_sqr_grads = self._RMSprop.mean_sqr_grads
-        self.bias_correct(velocities, mean_sqr_grads, iteration)
+        self.bias_correct(velocities, mean_sqr_grads)
 
         for grad in grads:
             grads[grad] = velocities[grad] / \

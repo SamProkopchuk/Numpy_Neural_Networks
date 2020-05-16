@@ -1,7 +1,4 @@
-import sys
-sys.path.insert(1, "..")
 import numpy as np
-from General_NN_Functions import sigmoid, tanh, relu, derivative
 
 
 class BatchMethod:
@@ -13,7 +10,7 @@ class BatchMethod:
         pass
 
 
-class batch_gradient_descent(BatchMethod):
+class Batch(BatchMethod):
 
     def __init__(self):
         pass
@@ -22,7 +19,7 @@ class batch_gradient_descent(BatchMethod):
         return X, Y
 
 
-class mini_batch_gradient_descent(BatchMethod):
+class MiniBatch(BatchMethod):
     """
     Mini Batch Gradient Descent
 
@@ -54,7 +51,7 @@ class mini_batch_gradient_descent(BatchMethod):
         return self.get_mini_batch(X), self.get_mini_batch(Y)
 
 
-class stochastic_gradient_descent(mini_batch_gradient_descent):
+class SGD(MiniBatch):
 
     def __init__(self):
         super().__init__(batch_size=1)

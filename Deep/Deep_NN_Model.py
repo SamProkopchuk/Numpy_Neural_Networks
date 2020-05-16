@@ -31,7 +31,7 @@ class DeepNNModel():
         self.regularization_method = regularization_method
         self.descent_method = descent_method
 
-        self._unregularized_prop = l2(lambd=0)
+        self._unregularized_prop = Unregularized()
 
     def initialized_weights(self, multiplier=0.01):
         weights = {}
@@ -43,6 +43,7 @@ class DeepNNModel():
         return weights
 
     def update_weights(self, grads, learning_rate):
+
         L = len(self.weights) // 2
         for l in range(L, 0, -1):
             self.weights[f"W{l}"] -= learning_rate * grads[f"dW{l}"]
@@ -52,16 +53,17 @@ class DeepNNModel():
         train_costs = []
 
         L = len(self.weights) // 2
-
         for i in range(1, num_iterations+1):
             Xbatch, Ybatch = self.batch_method.get_batch(X, Y)
+
             cache = self.regularization_method.forward_propagate(
                 Xbatch, self.weights, self.funcs)
+
             grads = self.regularization_method.backward_propagate(
                 self.weights, cache, self.funcs, Xbatch, Ybatch)
 
             if self.descent_method is not None:
-                grads = self.descent_method.optimized_grads(grads, i)
+                grads = self.descent_method.optimized_grads(grads)
             self.update_weights(grads, learning_rate)
 
             if i % cost_calc_interval == 0:

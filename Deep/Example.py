@@ -35,9 +35,9 @@ RANDOM_SEED = 10
 # END MICRO-parameters
 
 # Optimizer functions:
-BATCH_METHOD = mini_batch_gradient_descent(batch_size=128)
-REGULARIZATION_METHOD = dropout(keep_prob=0.8)
-DESCENT_METHOD = adam()
+BATCH_METHOD = MiniBatch(batch_size=128)
+REGULARIZATION_METHOD = Dropout(keep_prob=0.8)
+DESCENT_METHOD = Adam()
 
 
 def main():
