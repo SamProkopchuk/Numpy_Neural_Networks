@@ -2,7 +2,8 @@ import sys
 sys.path.insert(1, "..")
 import numpy as np
 from General_NN_Functions import sigmoid, tanh, relu, derivative, get_cost
-from Deep_NN_Optimizers import *
+from Batch_Types import *
+from Descent_Methods import *
 
 """
 A numpy implementation of all necessary functions for
@@ -14,7 +15,7 @@ With Deep_NN_Optimizers, has the ability of using optimizers such as sgd and dro
 class DeepNNModel():
 
     def __init__(self, layer_sizes, funcs,
-                 descent_method,         # Must be an instance
+                 batch_type,         # Must be an instance
                  random_seed=None):
         if random_seed is not None:
             np.random.seed(random_seed)
@@ -23,7 +24,7 @@ class DeepNNModel():
 
         self.weights = self.initialized_weights()
 
-        self.descent_method = descent_method
+        self.batch_type = batch_type
 
         self._batch_gradient_descent = batch_gradient_descent(
             dropout(keep_prob=1))
@@ -49,9 +50,9 @@ class DeepNNModel():
         L = len(self.weights) // 2
 
         for i in range(num_iterations):
-            cache = self.descent_method.forward_propagate(
+            cache = self.batch_type.forward_propagate(
                 X, self.weights, self.funcs)
-            grads = self.descent_method.backward_propagate(
+            grads = self.batch_type.backward_propagate(
                 self.weights, cache, self.funcs, X, Y)
             self.update_weights(grads, learning_rate)
 

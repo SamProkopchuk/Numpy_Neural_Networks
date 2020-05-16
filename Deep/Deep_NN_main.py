@@ -6,7 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_digits
 
 from General_NN_Functions import relu, tanh, sigmoid, evaluate_model, graph_costs
-from Deep_NN_Optimizers import *
+from Batch_Types import *
+from Descent_Methods import *
 from Deep_NN_Model import DeepNNModel
 
 """
@@ -16,8 +17,8 @@ Optmizers can be used and all micro weights can be manually changed.
 
 # The basic parameters and micro-parameters for a deep NN:
 
-LEARNING_RATE = 0.3
-NUM_ITERATIONS = 2000
+LEARNING_RATE = 0.1
+NUM_ITERATIONS = 10000
 LAYER_SIZES = (64, 37, 37, 10)
 # (Input layer and last layer must match X, Y dimentions)
 
@@ -33,8 +34,10 @@ RANDOM_SEED = 10
 # END MICRO-parameters
 
 # Optimizer functions:
-DESCENT_METHOD = mini_batch_gradient_descent(batch_size=100,
-    regularization_method=l2(lambd=0.7))
+BATCH_TYPE = mini_batch_gradient_descent(
+    batch_size=64, regularization_method=dropout(keep_prob=0.9))
+
+# DESCENT_METHOD = RMSProp()
 
 
 def main():
@@ -45,7 +48,7 @@ def main():
     X_orig = data.data
     Y_orig = data.target.reshape(-1, 1)
     X_train, X_test, Y_train, Y_test = train_test_split(
-        X_orig, Y_orig, test_size=0.2, random_state=11)
+        X_orig, Y_orig, test_size=0.2, random_state=12)
 
     # Scale X:
     X_train = X_train / 16 - 0.5
@@ -63,7 +66,8 @@ def main():
     deepNNModel = DeepNNModel(
         layer_sizes=LAYER_SIZES,
         funcs=FUNCS,
-        descent_method=DESCENT_METHOD,
+        batch_type=BATCH_TYPE,
+        # descent_method=DESCENT_METHOD,
         random_seed=RANDOM_SEED)
 
     train_costs = deepNNModel.fit(
