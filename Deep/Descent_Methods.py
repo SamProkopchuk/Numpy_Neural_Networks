@@ -63,7 +63,7 @@ class RMSProp(DescentMethod):
                 self.beta * self.mean_sqr_grads[grad] + \
                 (1 - self.beta) * np.square(grads[grad])
             grads[grad] /= \
-                np.sqrt(self.mean_sqr_grads[grad] + DescentMethod.EPSILON)
+                (np.sqrt(self.mean_sqr_grads[grad]) + DescentMethod.EPSILON)
 
         return grads
 
@@ -73,7 +73,7 @@ class Adam(DescentMethod):
     Adaptive Moment Estimation
     """
 
-    def __init__(self, momentum_beta=0.9, rms_beta=0.9):
+    def __init__(self, momentum_beta=0.9, rms_beta=0.999):
         self._Momentum = Momentum(momentum_beta)
         self._RMSprop = RMSProp(rms_beta)
         self._iteration = 0
@@ -86,14 +86,15 @@ class Adam(DescentMethod):
     def optimized_grads(self, grads):
         self._iteration += 1
         self._Momentum.optimized_grads(grads)
-        self._RMSprop.optimized_grads(grads)
+        grads = self._RMSprop.optimized_grads(grads)
 
         velocities = self._Momentum.velocities
         mean_sqr_grads = self._RMSprop.mean_sqr_grads
-        self.bias_correct(velocities, mean_sqr_grads)
 
-        for grad in grads:
-            grads[grad] = velocities[grad] / \
-                np.sqrt(mean_sqr_grads[grad] + DescentMethod.EPSILON)
+        # self.bias_correct(velocities, mean_sqr_grads)
+
+        for grad in velocities:
+            velocities[grad] /= \
+                (np.sqrt(mean_sqr_grads[grad]) + DescentMethod.EPSILON)
 
         return grads

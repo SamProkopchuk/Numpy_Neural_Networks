@@ -15,7 +15,7 @@ With Deep_NN_Optimizers, has the ability of using optimizers such as sgd and dro
 
 class DeepNNModel():
 
-    def __init__(self, layer_sizes, funcs,
+    def __init__(self, layer_sizes, initialization, funcs,
                  batch_method: BatchMethod,
                  regularization_method: RegularizationMethod,
                  descent_method: DescentMethod = None,
@@ -25,7 +25,7 @@ class DeepNNModel():
         self.layer_sizes = layer_sizes
         self.funcs = funcs
 
-        self.weights = self.initialized_weights()
+        self.weights = self.initialized_weights(initialization)
 
         self.batch_method = batch_method
         self.regularization_method = regularization_method
@@ -33,12 +33,19 @@ class DeepNNModel():
 
         self._unregularized_prop = Unregularized()
 
-    def initialized_weights(self, multiplier=0.01):
+    def initialized_weights(self, initialization, multiplier=0.01):
         weights = {}
 
-        for l in range(1, len(self.layer_sizes)):
-            weights[f"W{l}"] = np.random.randn(self.layer_sizes[l], self.layer_sizes[l - 1]) * multiplier
-            weights[f"b{l}"] = np.zeros((self.layer_sizes[l], 1))
+        if initialization == "random":
+            for l in range(1, len(self.layer_sizes)):
+                weights[f"W{l}"] = np.random.randn(self.layer_sizes[l], self.layer_sizes[l - 1]) * multiplier
+                weights[f"b{l}"] = np.zeros((self.layer_sizes[l], 1))
+        elif initialization == "he":
+            for l in range(1, len(self.layer_sizes)):
+                weights[f"W{l}"] = np.random.randn(self.layer_sizes[l], self.layer_sizes[l - 1]) * np.sqrt(2 / self.layer_sizes[l - 1])
+                weights[f"b{l}"] = np.zeros((self.layer_sizes[l], 1))
+        else:
+            exit(f"Unknown Weights Initialization Method: {initialization}")
 
         return weights
 
@@ -53,7 +60,7 @@ class DeepNNModel():
         train_costs = []
 
         L = len(self.weights) // 2
-        for i in range(1, num_iterations+1):
+        for i in range(1, num_iterations + 1):
             Xbatch, Ybatch = self.batch_method.get_batch(X, Y)
 
             cache = self.regularization_method.forward_propagate(
