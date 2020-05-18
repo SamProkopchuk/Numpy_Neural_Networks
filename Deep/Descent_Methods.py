@@ -22,19 +22,25 @@ class Momentum(DescentMethod):
 
         self._velocities_initialized = False
 
-    def initialize_velocities(self, grads):
-        for grad in grads:
-            self.velocities[grad] = 0
+    def initialize_velocities(self, grads, L):
+        L = len(grads) // 2
+        for l in range(1, L + 1):
+            self.velocities[f"dW{l}"] = 0.
+            self.velocities[f"db{l}"] = 0.
 
     def optimized_grads(self, grads):
         if not self._velocities_initialized:
             self.initialize_velocities(grads)
             self._velocities_initialized = True
 
-        for grad in grads:
-            self.velocities[grad] = \
-                self.beta * self.velocities[grad] + \
-                (1 - self.beta) * grads[grad]
+        L = len(grads) // 2
+        for l in range(1, L + 1):
+            self.velocities[f"dW{l}"] = \
+                self.beta * self.velocities[f"dW{l}"] + \
+                (1 - self.beta) * grads[f"dW{l}"]
+            self.velocities[f"db{l}"] = \
+                self.beta * self.velocities[f"db{l}"] + \
+                (1 - self.beta) * grads[f"db{l}"]
         return self.velocities
 
 
@@ -50,20 +56,29 @@ class RMSProp(DescentMethod):
         self._velocities_initialized = False
 
     def initialize_mean_sqr_grads(self, grads):
-        for grad in grads:
-            self.mean_sqr_grads[grad] = 0
+        L = len(grads) // 2
+        for l in range(1, L + 1):
+            self.mean_sqr_grads[f"dW{l}"] = 0.
+            self.mean_sqr_grads[f"db{l}"] = 0.
 
     def optimized_grads(self, grads):
         if not self._velocities_initialized:
             self.initialize_mean_sqr_grads(grads)
             self._velocities_initialized = True
 
-        for grad in grads:
-            self.mean_sqr_grads[grad] = \
-                self.beta * self.mean_sqr_grads[grad] + \
-                (1 - self.beta) * np.square(grads[grad])
-            grads[grad] /= \
-                (np.sqrt(self.mean_sqr_grads[grad]) + DescentMethod.EPSILON)
+        L = len(grads) // 2
+        for l in range(1, L + 1):
+            self.mean_sqr_grads[f"dW{l}"] = \
+                self.beta * self.mean_sqr_grads[f"dW{l}"] + \
+                (1 - self.beta) * np.square(grads[f"dW{l}"])
+            self.mean_sqr_grads[f"db{l}"] = \
+                self.beta * self.mean_sqr_grads[f"db{l}"] + \
+                (1 - self.beta) * np.square(grads[f"db{l}"])
+
+            grads[f"dW{l}"] /= \
+                np.sqrt(self.mean_sqr_grads[f"dW{l}"]) + DescentMethod.EPSILON
+            grads[f"db{l}"] /= \
+                np.sqrt(self.mean_sqr_grads[f"db{l}"]) + DescentMethod.EPSILON
 
         return grads
 
@@ -73,28 +88,67 @@ class Adam(DescentMethod):
     Adaptive Moment Estimation
     """
 
-    def __init__(self, momentum_beta=0.9, rms_beta=0.999):
-        self._Momentum = Momentum(momentum_beta)
-        self._RMSprop = RMSProp(rms_beta)
-        self._iteration = 0
+    def __init__(self, beta1=0.9, beta2=0.999):
+        self.iteration = 0
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.velocities = {}
+        self.mean_sqr_grads = {}
 
-    def bias_correct(self, velocities, mean_sqr_grads):
-        for grad in velocities:
-            velocities[grad] /= (1 - self._Momentum.beta ** self._iteration)
-            mean_sqr_grads[grad] /= (1 - self._RMSprop.beta ** self._iteration)
+        self._mean_terms_initialized = False
+
+    def initialize_mean_terms(self, grads):
+        L = len(grads) // 2
+
+        for l in range(1, L + 1):
+            self.velocities[f"dW{l}"] = 0
+            self.velocities[f"db{l}"] = 0
+            self.mean_sqr_grads[f"dW{l}"] = 0
+            self.mean_sqr_grads[f"db{l}"] = 0
+
+    def set_velocities(self, grads):
+        L = len(grads) // 2
+        for l in range(1, L + 1):
+            self.velocities[f"dW{l}"] = \
+                self.beta1 * self.velocities[f"dW{l}"] + \
+                (1 - self.beta1) * grads[f"dW{l}"]
+            self.velocities[f"db{l}"] = \
+                self.beta1 * self.velocities[f"db{l}"] + \
+                (1 - self.beta1) * grads[f"db{l}"]
+
+    def set_mean_sqr_grads(self, grads):
+        L = len(grads) // 2
+        for l in range(1, L + 1):
+            self.mean_sqr_grads[f"dW{l}"] = \
+                self.beta2 * self.mean_sqr_grads[f"dW{l}"] + \
+                (1 - self.beta2) * np.square(grads[f"dW{l}"])
+            self.mean_sqr_grads[f"db{l}"] = \
+                self.beta2 * self.mean_sqr_grads[f"db{l}"] + \
+                (1 - self.beta2) * np.square(grads[f"db{l}"])
+
+    def bias_correct(self, grads):
+        L = len(grads) // 2
+        for l in range(1, L+1):
+            self.velocities[f"dW{l}"] /= 1 - self.beta1 ** self.iteration
+            self.velocities[f"db{l}"] /= 1 - self.beta1 ** self.iteration
+            self.mean_sqr_grads[f"dW{l}"] /= 1 - self.beta2 ** self.iteration
+            self.mean_sqr_grads[f"db{l}"] /= 1 - self.beta2 ** self.iteration
 
     def optimized_grads(self, grads):
-        self._iteration += 1
-        self._Momentum.optimized_grads(grads)
-        grads = self._RMSprop.optimized_grads(grads)
+        if not self._mean_terms_initialized:
+            self.initialize_mean_terms(grads)
 
-        velocities = self._Momentum.velocities
-        mean_sqr_grads = self._RMSprop.mean_sqr_grads
+        self.iteration += 1
 
-        # self.bias_correct(velocities, mean_sqr_grads)
+        self.set_velocities(grads)
+        self.set_mean_sqr_grads(grads)
+        self.bias_correct(grads)
 
-        for grad in velocities:
-            velocities[grad] /= \
-                (np.sqrt(mean_sqr_grads[grad]) + DescentMethod.EPSILON)
+        L = len(grads) // 2
+        for l in range(1, L+1):
+            self.velocities[f"dW{l}"] /= \
+                np.sqrt(self.mean_sqr_grads[f"dW{l}"]) + DescentMethod.EPSILON
+            self.velocities[f"db{l}"] /= \
+                np.sqrt(self.mean_sqr_grads[f"db{l}"]) + DescentMethod.EPSILON
 
-        return grads
+        return self.velocities

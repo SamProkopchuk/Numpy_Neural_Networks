@@ -19,7 +19,7 @@ Optmizers can be used and all micro weights can be manually changed.
 # The basic parameters and micro-parameters for a deep NN:
 
 LEARNING_RATE = 0.001
-NUM_ITERATIONS = 500
+NUM_ITERATIONS = 1000
 LAYER_SIZES = (64, 37, 37, 10)
 # (Input layer and last layer must match X, Y dimentions)
 
