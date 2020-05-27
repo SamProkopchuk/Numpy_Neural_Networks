@@ -16,8 +16,8 @@ Run an example of a deep neural network, tuned to one's liking.
 Optmizers can be used and all micro weights can be manually changed.
 """
 
+# START MICRO-parameters:
 # The basic parameters and micro-parameters for a deep NN:
-
 LEARNING_RATE = 0.001
 NUM_ITERATIONS = 1000
 LAYER_SIZES = (64, 37, 37, 10)
@@ -30,14 +30,14 @@ COST_CALC_INTERVAL = NUM_ITERATIONS // 100
 # The functions for every layer:
 FUNCS = {f"L{i}_func": relu for i in range(1, len(LAYER_SIZES) - 1)}
 FUNCS[f"L{len(LAYER_SIZES)-1}_func"] = sigmoid
-
-RANDOM_SEED = 10
 # END MICRO-parameters
 
 # Optimizer functions:
 BATCH_METHOD = MiniBatch(batch_size=128)
 REGULARIZATION_METHOD = Dropout(keep_prob=0.8)
 DESCENT_METHOD = Adam()
+
+RANDOM_SEED = 10
 
 
 def main():
